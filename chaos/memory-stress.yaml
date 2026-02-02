@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: memory-stress
+  namespace: playground
+spec:
+  containers:
+  - name: stress
+    image: polinux/stress
+    command: ["stress"]
+    args: ["--vm", "1", "--vm-bytes", "256M", "--timeout", "60s"]
+    resources:
+      requests:
+        memory: "128Mi"
+      limits:
+        memory: "512Mi"
+  restartPolicy: Never
