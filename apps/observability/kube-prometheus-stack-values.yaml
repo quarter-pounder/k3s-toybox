@@ -1,0 +1,55 @@
+# kube-prometheus-stack: Prometheus, Grafana, Alertmanager, node-exporter, kube-state-metrics
+# Helm: prometheus-community/kube-prometheus-stack
+# Install after Loki so Grafana can use Loki datasource
+
+namespaceOverride: observability
+
+grafana:
+  adminPassword: admin
+  persistence:
+    enabled: true
+    size: 1Gi
+  additionalDataSources:
+  - name: Loki
+    type: loki
+    url: http://loki:3100
+    access: proxy
+    isDefault: false
+
+prometheus:
+  prometheusSpec:
+    retention: 15d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          resources:
+            requests:
+              storage: 10Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          resources:
+            requests:
+              storage: 1Gi
+
+defaultRules:
+  create: true
+
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+prometheusOperator:
+  enabled: true
