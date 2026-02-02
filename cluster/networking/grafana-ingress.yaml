@@ -1,0 +1,23 @@
+# Ingress for Grafana (observability stack)
+# Apply after ingress-nginx is running.
+# Add to /etc/hosts: <node-ip> grafana.toybox.local
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: observability
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: grafana.toybox.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kube-prometheus-stack-grafana
+            port:
+              number: 80
