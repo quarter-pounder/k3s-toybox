@@ -25,16 +25,16 @@ help:
 	@echo "  make env-check        - Verify bootstrap/.env exists and required vars set"
 
 prep:
-	$(or $(ARGS),sudo) $(BOOTSTRAP_DIR)/node-prep-fedora.sh
+	$(or $(ARGS),sudo) bash $(BOOTSTRAP_DIR)/node-prep-fedora.sh
 
 firewall:
-	$(or $(ARGS),sudo) $(BOOTSTRAP_DIR)/firewall-firewalld.sh
+	$(or $(ARGS),sudo) bash $(BOOTSTRAP_DIR)/firewall-firewalld.sh
 
 server: env-check
-	$(or $(ARGS),sudo) $(BOOTSTRAP_DIR)/install-k3s-server.sh
+	$(or $(ARGS),sudo) bash $(BOOTSTRAP_DIR)/install-k3s-server.sh
 
 agent: env-check
-	$(or $(ARGS),sudo) $(BOOTSTRAP_DIR)/install-k3s-agent.sh
+	$(or $(ARGS),sudo) bash $(BOOTSTRAP_DIR)/install-k3s-agent.sh
 
 status:
 	kubectl get nodes -o wide 2>/dev/null || (echo "kubectl not available or no kubeconfig" >&2; exit 1)
@@ -47,10 +47,10 @@ token:
 	fi
 
 teardown-server:
-	$(or $(ARGS),sudo) $(BOOTSTRAP_DIR)/uninstall-k3s-server.sh
+	$(or $(ARGS),sudo) bash $(BOOTSTRAP_DIR)/uninstall-k3s-server.sh
 
 teardown-agent:
-	$(or $(ARGS),sudo) $(BOOTSTRAP_DIR)/uninstall-k3s-agent.sh
+	$(or $(ARGS),sudo) bash $(BOOTSTRAP_DIR)/uninstall-k3s-agent.sh
 
 env-check:
 	@test -f $(BOOTSTRAP_DIR)/.env || (echo "Create $(BOOTSTRAP_DIR)/.env from $(BOOTSTRAP_DIR)/env.example" >&2; exit 1)
