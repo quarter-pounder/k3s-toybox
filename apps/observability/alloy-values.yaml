@@ -1,0 +1,21 @@
+# Grafana Alloy: log collector (Kubernetes pod logs to Loki)
+# Helm: grafana/alloy
+# Config: pass with --set-file alloy.configMap.content=alloy/config.alloy
+# Install after Loki so Alloy can reach http://loki:3100
+
+namespaceOverride: observability
+
+alloy:
+  configMap:
+    create: true
+    # content provided via: helm install ... --set-file alloy.configMap.content=alloy/config.alloy
+  mounts:
+    varlog: true
+  extraEnv:
+  - name: NODE_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: spec.nodeName
+
+controller:
+  type: daemonset

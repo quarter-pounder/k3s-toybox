@@ -1,0 +1,64 @@
+// Alloy config: Kubernetes pod logs to Loki
+// Deploy Alloy in observability namespace so Loki URL is http://loki:3100
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
+
+discovery.kubernetes "pod" {
+  role = "pod"
+  selectors {
+    role  = "pod"
+    field = "spec.nodeName=" + coalesce(sys.env("NODE_NAME"), "toybox-0")
+  }
+}
+
+discovery.relabel "pod_logs" {
+  targets = discovery.kubernetes.pod.targets
+
+  rule {
+    source_labels = ["__meta_kubernetes_namespace"]
+    target_label  = "namespace"
+    action        = "replace"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_pod_name"]
+    target_label  = "pod"
+    action        = "replace"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_pod_container_name"]
+    target_label  = "container"
+    action        = "replace"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_container_name"]
+    target_label  = "job"
+    separator     = "/"
+    replacement   = "$1"
+    action        = "replace"
+  }
+  rule {
+    source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+    target_label  = "__path__"
+    separator     = "/"
+    replacement   = "/var/log/pods/$1/$2/*.log"
+    action        = "replace"
+  }
+}
+
+loki.source.kubernetes "pod_logs" {
+  targets = discovery.relabel.pod_logs.output
+  forward_to = [loki.process.pod_logs.receiver]
+}
+
+loki.process "pod_logs" {
+  stage.static_labels {
+    values = {
+      cluster = "k3s-toybox",
+    }
+  }
+  forward_to = [loki.write.default.receiver]
+}
