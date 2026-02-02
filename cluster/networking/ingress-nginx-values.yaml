@@ -1,0 +1,11 @@
+# ingress-nginx controller (Traefik disabled on k3s)
+# Helm: ingress-nginx/ingress-nginx
+# Repo: https://kubernetes.github.io/ingress-nginx
+
+controller:
+  service:
+    type: LoadBalancer
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
