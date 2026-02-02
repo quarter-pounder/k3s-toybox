@@ -13,7 +13,8 @@ dnf -y install \
   socat conntrack-tools \
   iproute ipset \
   jq \
-  nfs-utils
+  nfs-utils \
+  helm
 
 echo "[2/6] Swap off (Kubernetes expects swap disabled)"
 swapoff -a || true
