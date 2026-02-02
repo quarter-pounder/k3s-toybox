@@ -1,0 +1,26 @@
+# Network delay using tc (traffic control)
+# This is a privileged pod that adds latency to its own network interface
+# For cluster-wide network chaos, use Chaos Mesh or Litmus
+apiVersion: v1
+kind: Pod
+metadata:
+  name: network-delay
+  namespace: playground
+spec:
+  containers:
+  - name: delay
+    image: alpine
+    command:
+    - /bin/sh
+    - -c
+    - |
+      apk add --no-cache iproute2
+      tc qdisc add dev eth0 root netem delay 200ms 50ms
+      echo "Added 200ms +/- 50ms delay to eth0"
+      sleep 120
+      tc qdisc del dev eth0 root
+      echo "Removed delay"
+    securityContext:
+      capabilities:
+        add: ["NET_ADMIN"]
+  restartPolicy: Never
