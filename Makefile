@@ -1,7 +1,9 @@
 # k3s-toybox bootstrap and cluster operations
 # Run targets that execute scripts with sudo (prep, firewall, server, agent, teardown-*) as root or via: make target ARGS="sudo"
+# Run make from repo root so script paths resolve correctly.
 
-BOOTSTRAP_DIR := bootstrap
+ROOT_DIR := $(CURDIR)
+BOOTSTRAP_DIR := $(ROOT_DIR)/bootstrap
 SHELL := /bin/bash
 
 .PHONY: help prep firewall server agent status token teardown-server teardown-agent env-check
@@ -52,5 +54,5 @@ teardown-agent:
 
 env-check:
 	@test -f $(BOOTSTRAP_DIR)/.env || (echo "Create $(BOOTSTRAP_DIR)/.env from $(BOOTSTRAP_DIR)/env.example" >&2; exit 1)
-	@. $(BOOTSTRAP_DIR)/.env 2>/dev/null; test -n "$$K3S_VERSION" || (echo "K3S_VERSION not set in .env" >&2; exit 1)
-	@. $(BOOTSTRAP_DIR)/.env 2>/dev/null; test -n "$$K3S_NODE_NAME" || (echo "K3S_NODE_NAME not set in .env" >&2; exit 1)
+	@. "$(BOOTSTRAP_DIR)/.env" 2>/dev/null; test -n "$$K3S_VERSION" || (echo "K3S_VERSION not set in .env" >&2; exit 1)
+	@. "$(BOOTSTRAP_DIR)/.env" 2>/dev/null; test -n "$$K3S_NODE_NAME" || (echo "K3S_NODE_NAME not set in .env" >&2; exit 1)
