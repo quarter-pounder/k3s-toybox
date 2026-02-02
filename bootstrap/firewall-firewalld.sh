@@ -28,6 +28,16 @@ firewall-cmd --permanent --add-port=10250/tcp || {
   exit 1
 }
 
+firewall-cmd --permanent --add-port=80/tcp || {
+  echo "Error: Failed to add port 80/tcp" >&2
+  exit 1
+}
+
+firewall-cmd --permanent --add-port=443/tcp || {
+  echo "Error: Failed to add port 443/tcp" >&2
+  exit 1
+}
+
 firewall-cmd --reload || {
   echo "Error: Failed to reload firewalld" >&2
   exit 1
