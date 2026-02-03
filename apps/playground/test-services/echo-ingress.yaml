@@ -1,0 +1,19 @@
+# Ingress for echo app. Add to /etc/hosts: <node-ip> app.toybox.local
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: echo
+  namespace: playground
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: app.toybox.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: echo
+            port:
+              number: 80
