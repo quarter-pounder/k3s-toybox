@@ -6,7 +6,7 @@ ROOT_DIR := $(CURDIR)
 BOOTSTRAP_DIR := $(ROOT_DIR)/bootstrap
 SHELL := /bin/bash
 
-.PHONY: help prep firewall server agent status token teardown-server teardown-agent env-check
+.PHONY: help prep firewall server agent status token teardown-server teardown-agent env-check deploy-playground pods logs events
 
 help:
 	@echo "Bootstrap (run as root or: make <target> ARGS=sudo):"
@@ -20,6 +20,12 @@ help:
 	@echo "  make token            - Print join token (run on server node as root)"
 	@echo "  make teardown-server  - Uninstall k3s server"
 	@echo "  make teardown-agent   - Uninstall k3s agent"
+	@echo ""
+	@echo "Playground:"
+	@echo "  make deploy-playground - Deploy echo app and ingress in playground"
+	@echo "  make pods             - Pods (all namespaces)"
+	@echo "  make logs             - Tail logs (usage: make logs POD=name NS=namespace)"
+	@echo "  make events           - Recent cluster events"
 	@echo ""
 	@echo "Setup:"
 	@echo "  make env-check        - Verify bootstrap/.env exists and required vars set"
@@ -51,6 +57,21 @@ teardown-server:
 
 teardown-agent:
 	$(or $(ARGS),sudo) bash $(BOOTSTRAP_DIR)/uninstall-k3s-agent.sh
+
+deploy-playground:
+	kubectl apply -f $(ROOT_DIR)/apps/playground/test-services/echo-app.yaml
+	kubectl apply -f $(ROOT_DIR)/apps/playground/test-services/echo-ingress.yaml
+	@echo "Echo app deployed. Add to /etc/hosts: <node-ip> app.toybox.local"
+
+pods:
+	kubectl get pods -A -o wide
+
+logs:
+	@if [ -z "$(POD)" ]; then echo "Usage: make logs POD=<pod-name> [NS=<namespace>]" >&2; exit 1; fi; \
+	kubectl logs -n $(or $(NS),default) -f $(POD) --tail=50
+
+events:
+	kubectl get events -A --sort-by='.lastTimestamp' | tail -30
 
 env-check:
 	@test -f $(BOOTSTRAP_DIR)/.env || (echo "Create $(BOOTSTRAP_DIR)/.env from $(BOOTSTRAP_DIR)/env.example" >&2; exit 1)
