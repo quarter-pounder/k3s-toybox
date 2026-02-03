@@ -1,0 +1,43 @@
+# Echo app for chaos experiments. Returns request metadata including hostname.
+# When a pod is killed, the next request may hit a different pod (different hostname).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo
+  namespace: playground
+  labels:
+    app: echo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: echo
+  template:
+    metadata:
+      labels:
+        app: echo
+    spec:
+      containers:
+      - name: echo
+        image: ealen/echo-server:0.9.0
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo
+  namespace: playground
+spec:
+  selector:
+    app: echo
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP
