@@ -46,7 +46,7 @@ K3S_FLANNEL_BACKEND="vxlan"
 
 ```bash
 sudo make prep        # Install packages, disable swap, configure kernel
-sudo make firewall    # Open ports 6443, 8472, 10250
+sudo make firewall    # Open ports 6443, 8472, 10250, 80, 443
 sudo make server      # Install k3s server
 ```
 
@@ -54,6 +54,12 @@ sudo make server      # Install k3s server
 
 ```bash
 make status           # kubectl get nodes
+```
+
+On the k3s server, set kubeconfig so kubectl/helm can reach the cluster:
+
+```bash
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 ```
 
 ### 4. (Optional) Add agent nodes
@@ -94,6 +100,10 @@ sudo make agent
 | `make teardown-server` | Uninstall k3s server |
 | `make teardown-agent` | Uninstall k3s agent |
 | `make env-check` | Validate bootstrap/.env |
+| `make apply-namespaces` | Apply cluster namespaces |
+| `make install-ingress` | Install ingress-nginx controller |
+| `make install-observability` | Install Loki, Prometheus/Grafana, Alloy |
+| `make install-all` | Apply namespaces, install ingress and observability |
 
 ## Firewall Ports
 
@@ -102,6 +112,12 @@ sudo make agent
 | 6443 | TCP | Kubernetes API |
 | 8472 | UDP | Flannel VXLAN |
 | 10250 | TCP | Kubelet metrics |
+| 80 | TCP | ingress-nginx HTTP |
+| 443 | TCP | ingress-nginx HTTPS |
+
+## Ingress
+
+Traefik is disabled. Install ingress-nginx and apply Ingress resources from `cluster/networking/`. See [cluster/networking/README.md](cluster/networking/README.md) for Helm install and Grafana Ingress (host: grafana.toybox.local).
 
 ## Teardown
 
@@ -111,8 +127,40 @@ sudo make teardown-server  # or teardown-agent
 
 This runs the official k3s uninstall script which removes all k3s data and configurations.
 
+## Observability
+
+After bootstrap and namespaces, install Prometheus, Grafana, Loki, and Alloy from `apps/observability/`. See [apps/observability/README.md](apps/observability/README.md) for Helm install order and commands.
+
+Or use the Makefile target:
+
+```bash
+make install-observability
+```
+
+## Workloads
+
+Example workloads for learning and testing:
+
+- **Stateless**: `workloads/stateless/` - nginx, simple-api
+- **Stateful**: `workloads/stateful/` - PostgreSQL, Redis with PVCs
+
+Deploy examples:
+
+```bash
+kubectl apply -f workloads/stateless/nginx-deployment.yaml
+kubectl apply -f workloads/stateful/postgresql.yaml
+```
+
+## Backups
+
+Backup scripts for etcd snapshots and PVC data. See [backups/README.md](backups/README.md) for usage.
+
+- `backups/etcd-snapshot.sh` - Backup entire cluster state
+- `backups/pvc-backup.sh` - Backup PVC data
+- `backups/restore-test.sh` - Restore from etcd snapshot
+
 ## Notes
 
-- Traefik is disabled by default; install ingress-nginx or re-enable Traefik as needed
+- Traefik is disabled by default; ingress-nginx is in cluster/networking/
 - Kubeconfig is at `/etc/rancher/k3s/k3s.yaml` with mode 0644
 - Node token is at `/var/lib/rancher/k3s/server/node-token`
