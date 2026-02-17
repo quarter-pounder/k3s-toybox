@@ -6,7 +6,7 @@ ROOT_DIR := $(CURDIR)
 BOOTSTRAP_DIR := $(ROOT_DIR)/bootstrap
 SHELL := /bin/bash
 
-.PHONY: help prep firewall server agent status token teardown-server teardown-agent env-check deploy-playground pods logs events apply-namespaces install-ingress install-observability install-all
+.PHONY: help prep firewall server agent status token teardown-server teardown-agent env-check deploy-playground pods logs events apply-namespaces install-ingress install-observability install-all install-chaos-mesh uninstall-chaos-mesh chaos-dashboard
 
 help:
 	@echo "Bootstrap (run as root or: make <target> ARGS=sudo):"
@@ -33,6 +33,11 @@ help:
 	@echo "  make install-ingress  - Install ingress-nginx controller"
 	@echo "  make install-observability - Install Loki, Prometheus/Grafana, Alloy"
 	@echo "  make install-all      - Apply namespaces, install ingress and observability"
+	@echo ""
+	@echo "Chaos:"
+	@echo "  make install-chaos-mesh - Install Chaos Mesh"
+	@echo "  make uninstall-chaos-mesh - Uninstall Chaos Mesh"
+	@echo "  make chaos-dashboard  - Port-forward Chaos Mesh dashboard (http://localhost:2333)"
 
 prep:
 	$(or $(ARGS),sudo) bash $(BOOTSTRAP_DIR)/node-prep-fedora.sh
@@ -126,3 +131,24 @@ install-all: apply-namespaces install-ingress install-observability
 	@echo "  1. Apply Grafana ingress: kubectl apply -f cluster/networking/grafana-ingress.yaml"
 	@echo "  2. Add to /etc/hosts: <node-ip> grafana.toybox.local"
 	@echo "  3. Access Grafana at http://grafana.toybox.local (default: admin/admin)"
+
+install-chaos-mesh:
+	@echo "Adding Chaos Mesh Helm repo..."
+	@helm repo add chaos-mesh https://charts.chaos-mesh.org 2>/dev/null || true
+	@helm repo update chaos-mesh
+	@echo "Installing Chaos Mesh..."
+	@helm upgrade --install chaos-mesh chaos-mesh/chaos-mesh \
+		-n chaos-mesh \
+		--create-namespace \
+		-f $(ROOT_DIR)/chaos/chaos-mesh-values.yaml \
+		--wait --timeout 5m || (echo "Chaos Mesh installation failed. Check: kubectl get pods -n chaos-mesh" >&2; exit 1)
+	@echo "Chaos Mesh installed. Access dashboard: make chaos-dashboard"
+
+uninstall-chaos-mesh:
+	@echo "Uninstalling Chaos Mesh..."
+	@helm uninstall chaos-mesh -n chaos-mesh || true
+	@echo "Chaos Mesh uninstalled"
+
+chaos-dashboard:
+	@echo "Port-forwarding Chaos Mesh dashboard to http://localhost:2333"
+	@kubectl port-forward -n chaos-mesh svc/chaos-dashboard 2333:2333
