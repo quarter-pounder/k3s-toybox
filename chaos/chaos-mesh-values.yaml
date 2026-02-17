@@ -1,0 +1,22 @@
+# Chaos Mesh Helm values for k3s
+# Runtime: containerd (k3s default)
+# Install: helm install chaos-mesh chaos-mesh/chaos-mesh -n chaos-mesh --create-namespace -f chaos/chaos-mesh-values.yaml
+
+clusterScoped: true
+
+controllerManager:
+  replicaCount: 1
+  leaderElection:
+    enabled: false
+
+chaosDaemon:
+  runtime: containerd
+  socketPath: /run/k3s/containerd/containerd.sock
+
+dashboard:
+  create: true
+  service:
+    type: ClusterIP
+
+dnsServer:
+  create: true
