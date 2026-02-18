@@ -1,0 +1,20 @@
+# StressChaos: CPU stress on one echo pod for 60s (2 workers, 50% load each).
+# Apply: kubectl apply -f chaos/chaos-mesh/stress-cpu-echo.yaml
+# Remove: kubectl delete -f chaos/chaos-mesh/stress-cpu-echo.yaml
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: stress-cpu-echo
+  namespace: chaos-mesh
+spec:
+  mode: one
+  duration: "60s"
+  selector:
+    namespaces:
+      - playground
+    labelSelectors:
+      app: echo
+  stressors:
+    cpu:
+      workers: 2
+      load: 50
