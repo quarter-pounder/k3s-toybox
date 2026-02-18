@@ -1,0 +1,21 @@
+# NetworkChaos: add 200ms latency to one echo pod for 60s.
+# Apply: kubectl apply -f chaos/chaos-mesh/network-delay-echo.yaml
+# Remove: kubectl delete -f chaos/chaos-mesh/network-delay-echo.yaml
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: network-delay-echo
+  namespace: chaos-mesh
+spec:
+  action: delay
+  mode: one
+  duration: "60s"
+  selector:
+    namespaces:
+      - playground
+    labelSelectors:
+      app: echo
+  delay:
+    latency: "200ms"
+    correlation: "100"
+    jitter: "50ms"
