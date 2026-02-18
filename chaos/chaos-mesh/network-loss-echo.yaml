@@ -1,0 +1,20 @@
+# NetworkChaos: 20% packet loss on one echo pod for 60s.
+# Apply: kubectl apply -f chaos/chaos-mesh/network-loss-echo.yaml
+# Remove: kubectl delete -f chaos/chaos-mesh/network-loss-echo.yaml
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: network-loss-echo
+  namespace: chaos-mesh
+spec:
+  action: loss
+  mode: one
+  duration: "60s"
+  selector:
+    namespaces:
+      - playground
+    labelSelectors:
+      app: echo
+  loss:
+    loss: "20"
+    correlation: "100"
