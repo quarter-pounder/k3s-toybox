@@ -1,0 +1,16 @@
+# PodChaos: kill one echo pod. Deployment will recreate it.
+# Apply: kubectl apply -f chaos/chaos-mesh/pod-kill-echo.yaml
+# Remove: kubectl delete -f chaos/chaos-mesh/pod-kill-echo.yaml
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: pod-kill-echo
+  namespace: chaos-mesh
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces:
+      - playground
+    labelSelectors:
+      app: echo
